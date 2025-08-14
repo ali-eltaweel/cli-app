@@ -6,13 +6,15 @@ use CommandParser\Command;
 use CommandParser\CommandLineParser;
 use CommandParser\Specs\Command as CommandSpecs;
 
+use Exception;
+
 /**
  * CLI Application.
  * 
  * @api
  * @abstract
  * @since 0.1.0
- * @version 1.0.0
+ * @version 1.1.0
  * @package cli-app
  * @author Ali M. Kamel <ali.kamel.dev@gmail.com>
  */
@@ -29,6 +31,41 @@ abstract class CliApplication {
      * @param Command $commandline The parsed command line arguments.
      */
     public final function __construct(protected readonly Command $commandline) {}
+
+    /**
+     * Daemonizes the process.
+     * 
+     * @final
+     * @internal
+     * @since 1.1.0
+     * @version 1.0.0
+     * 
+     * @throws Exception
+     * @return void
+     */
+    protected final function daemonize(): void {
+
+        $pid = pcntl_fork();
+
+        if ($pid === -1) {
+
+            throw new Exception('Could not fork');
+        }
+
+        if ($pid !== 0) {
+
+            exit(0);
+        }
+
+        if (posix_setsid() == -1) {
+
+            throw new Exception("Could not detach from terminal\n");
+        }
+
+        fclose(STDIN);
+        fclose(STDOUT);
+        fclose(STDERR);
+    }
 
     /**
      * Sets up the application.
@@ -75,7 +112,7 @@ abstract class CliApplication {
         $command = $commandParser->parse([ $appName, ...$args ], static::getCommandSpecs());
 
         $app = new static($command);
-        
+
         $app->setup();
         
         while (true) {
