@@ -2,11 +2,11 @@
 
 namespace App\CLI;
 
-use CommandParser\Command;
-use CommandParser\CommandLineParser;
-use CommandParser\Specs\Command as CommandSpecs;
+use CommandParser\{ Command, CommandLineParser, Specs\Command as CommandSpecs };
 
-use Exception;
+use Signals\Signal;
+
+use Exception, ReflectionClass;
 
 /**
  * CLI Application.
@@ -14,7 +14,7 @@ use Exception;
  * @api
  * @abstract
  * @since 0.1.0
- * @version 1.1.0
+ * @version 1.2.0
  * @package cli-app
  * @author Ali M. Kamel <ali.kamel.dev@gmail.com>
  */
@@ -72,11 +72,20 @@ abstract class CliApplication {
      * 
      * @internal
      * @since 1.0.0
-     * @version 1.0.0
+     * @version 1.1.0
      * 
      * @return void
      */
-    protected function setup(): void {}
+    protected function setup(): void {
+
+        $classReflection = new ReflectionClass($this);
+
+        foreach (Annotations\Signals::annotatedOn($classReflection->getMethod('signalHandler'))?->signals ?? [] as $signal) {
+
+            /** @var Signal $signal */
+            $signal->handle(fn (Signal $signal, array $siginfo) => $this->signalHandler($signal, $siginfo));
+        }
+    }
     
     /**
      * Main application loop.
@@ -91,6 +100,19 @@ abstract class CliApplication {
 
         exit(0);
     }
+
+    /**
+     * Handles signals received by the application.
+     * 
+     * @internal
+     * @since 1.2.0
+     * @version 1.0.0
+     * 
+     * @param Signal $signal  The signal instance.
+     * @param array $signinfo The signal information.
+     * @return void
+     */
+    protected function signalHandler(Signal $signal, array $signinfo) {}
 
     /**
      * Main entry point for the CLI application.
