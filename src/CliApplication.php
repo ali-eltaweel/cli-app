@@ -3,6 +3,7 @@
 namespace App\CLI;
 
 use CommandParser\{ Command, CommandLineParser, Specs\Command as CommandSpecs };
+use Exception;
 
 /**
  * CLI Application.
@@ -10,7 +11,7 @@ use CommandParser\{ Command, CommandLineParser, Specs\Command as CommandSpecs };
  * @api
  * @abstract
  * @since 0.1.0
- * @version 1.3.0
+ * @version 1.3.1
  * @package cli-app
  * @author Ali M. Kamel <ali.kamel.dev@gmail.com>
  */
@@ -48,7 +49,7 @@ abstract class CliApplication {
      * @final
      * @internal
      * @since 1.1.0
-     * @version 1.0.0
+     * @version 1.0.1
      * 
      * @throws Exception
      * @return void
