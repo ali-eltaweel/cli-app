@@ -4,21 +4,28 @@ namespace App\CLI;
 
 use CommandParser\{ Command, CommandLineParser, Specs\Command as CommandSpecs };
 
-use Signals\Signal;
-
-use Exception, ReflectionClass;
-
 /**
  * CLI Application.
  * 
  * @api
  * @abstract
  * @since 0.1.0
- * @version 1.2.0
+ * @version 1.3.0
  * @package cli-app
  * @author Ali M. Kamel <ali.kamel.dev@gmail.com>
  */
 abstract class CliApplication {
+
+    /**
+     * The last created application instance.
+     * 
+     * @static
+     * @internal
+     * @since 1.3.0
+     * 
+     * @var CliApplication|null $instance
+     */
+    private static ?CliApplication $instance = null;
 
     /**
      * Creates a new CLI application instance.
@@ -30,7 +37,10 @@ abstract class CliApplication {
      * 
      * @param Command $commandline The parsed command line arguments.
      */
-    public final function __construct(protected readonly Command $commandline) {}
+    public final function __construct(protected readonly Command $commandline) {
+
+        self::$instance = $this;
+    }
 
     /**
      * Daemonizes the process.
@@ -72,20 +82,11 @@ abstract class CliApplication {
      * 
      * @internal
      * @since 1.0.0
-     * @version 1.1.0
+     * @version 1.2.0
      * 
      * @return void
      */
-    protected function setup(): void {
-
-        $classReflection = new ReflectionClass($this);
-
-        foreach (Annotations\Signals::annotatedOn($classReflection->getMethod('signalHandler'))?->signals ?? [] as $signal) {
-
-            /** @var Signal $signal */
-            $signal->handle(fn (Signal $signal, array $siginfo) => $this->signalHandler($signal, $siginfo));
-        }
-    }
+    protected function setup(): void {}
     
     /**
      * Main application loop.
@@ -100,19 +101,6 @@ abstract class CliApplication {
 
         exit(0);
     }
-
-    /**
-     * Handles signals received by the application.
-     * 
-     * @internal
-     * @since 1.2.0
-     * @version 1.0.0
-     * 
-     * @param Signal $signal  The signal instance.
-     * @param array $signinfo The signal information.
-     * @return void
-     */
-    protected function signalHandler(Signal $signal, array $signinfo) {}
 
     /**
      * Main entry point for the CLI application.
@@ -142,6 +130,22 @@ abstract class CliApplication {
             $app->loop();
             usleep(1);
         }
+    }
+
+    /**
+     * Retrieves the last created cli apllication instance.
+     * 
+     * @api
+     * @final
+     * @static
+     * @since 1.3.0
+     * @version 1.0.0
+     * 
+     * @return CliApplication|null
+     */
+    public static final function instance(): ?static {
+
+        return self::$instance;
     }
 
     /**
