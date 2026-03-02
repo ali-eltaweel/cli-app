@@ -11,7 +11,7 @@ use Exception;
  * @api
  * @abstract
  * @since 0.1.0
- * @version 1.3.1
+ * @version 1.4.0
  * @package cli-app
  * @author Ali M. Kamel <ali.kamel.dev@gmail.com>
  */
@@ -28,6 +28,8 @@ abstract class CliApplication {
      */
     private static ?CliApplication $instance = null;
 
+    protected readonly Command $commandline;
+
     /**
      * Creates a new CLI application instance.
      * 
@@ -38,9 +40,14 @@ abstract class CliApplication {
      * 
      * @param Command $commandline The parsed command line arguments.
      */
-    public final function __construct(protected readonly Command $commandline) {
+    public final function __construct() {
 
         self::$instance = $this;
+    }
+
+    public final function setCommandLine(Command $commandline): void {
+
+        $this->commandline = $commandline;
     }
 
     /**
@@ -104,6 +111,18 @@ abstract class CliApplication {
     }
 
     /**
+     * Retrieves the command specifications for the application.
+     * 
+     * @internal
+     * @abstract
+     * @since 1.0.0
+     * @version 1.1.0
+     * 
+     * @return CommandSpecs
+     */
+    protected abstract function getCommandSpecs(): CommandSpecs;
+
+    /**
      * Main entry point for the CLI application.
      * 
      * @api
@@ -120,9 +139,10 @@ abstract class CliApplication {
 
         $commandParser = new CommandLineParser();
 
-        $command = $commandParser->parse([ $appName, ...$args ], static::getCommandSpecs());
+        $app = new static();
+        $command = $commandParser->parse([ $appName, ...$args ], $app->getCommandSpecs());
 
-        $app = new static($command);
+        $app->setCommandLine($command);
 
         $app->setup();
         
@@ -134,7 +154,7 @@ abstract class CliApplication {
     }
 
     /**
-     * Retrieves the last created cli apllication instance.
+     * Retrieves the last created CLI application instance.
      * 
      * @api
      * @final
@@ -148,17 +168,4 @@ abstract class CliApplication {
 
         return self::$instance;
     }
-
-    /**
-     * Retrieves the command specifications for the application.
-     * 
-     * @static
-     * @internal
-     * @abstract
-     * @since 1.0.0
-     * @version 1.0.0
-     * 
-     * @return CommandSpecs
-     */
-    protected static abstract function getCommandSpecs(): CommandSpecs;
 }

@@ -1,6 +1,6 @@
 {
     "name": "ali-eltaweel/cli-app",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "description": "CLI application skeleton for PHP projects.",
     "maintainers": [
         {
